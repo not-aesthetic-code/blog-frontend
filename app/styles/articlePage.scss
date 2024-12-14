@@ -1,0 +1,7 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+.prose img {
+  @apply mb-4; // Apply Tailwind's margin-bottom utility
+}
