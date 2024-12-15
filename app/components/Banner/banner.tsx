@@ -43,7 +43,8 @@ export default async function Banner() {
 
 
    console.log("Full data:", JSON.stringify(data, null, 2));
-   // console.log("Image URL:", lastUrl);
+
+   console.log("DATA:", JSON.stringify(data))
 
  return (
     <div className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
