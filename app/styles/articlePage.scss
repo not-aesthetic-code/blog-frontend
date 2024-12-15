@@ -5,3 +5,14 @@
 .prose img {
   @apply mb-4; // Apply Tailwind's margin-bottom utility
 }
+
+.prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.prose ol li {
+  margin-bottom: 0.5rem;
+}

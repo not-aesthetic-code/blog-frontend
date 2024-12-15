@@ -22,10 +22,6 @@ export async function getPosts(slug: string): Promise<Post | null> {
 
       const jsonData = await response.json();
       
-      // Log the fetched JSON data for debugging
-      console.log("JSON DATA", jsonData);
-
-      // Return only the first entry that matches the slug or null if not found
       return jsonData.data.length > 0 ? jsonData.data[0] : null;
   } catch (error) {
       console.error('Error fetching post:', error);

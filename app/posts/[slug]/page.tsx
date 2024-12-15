@@ -22,31 +22,63 @@ async function markdownToHtml(markdown: string) {
   return result.toString();
 }
 
-function splitIntoSections(markdown: string) {
-  const lines = markdown.split('\n');
-  const sections: { title: string; content: string }[] = [];
-  let currentSection: { title: string; content: string } | null = null;
+interface Section {
+  title: string;
+  content: string;
+}
 
-  lines.forEach((line) => {
+function splitIntoSections(markdown: string): Section[] {
+  const lines = markdown.split('\n');
+  const sections: Section[] = [];
+  let currentSection: Section | null = null;
+  let inList = false;
+  let listContent = '';
+
+  lines.forEach((line: string) => {
     if (line.startsWith('# ')) {
-      // Start of a new section (e.g., "# Header")
       if (currentSection) {
+        if (inList) {
+          currentSection.content += `<ol class="list-decimal pl-6 space-y-2">${listContent}</ol>\n`;
+          inList = false;
+          listContent = '';
+        }
         sections.push(currentSection);
       }
-      currentSection = { title: line.slice(2), content: '' };
+      currentSection = { title: line.slice(2).trim(), content: '' };
     } else if (currentSection) {
-      // Add content to the current section
-      currentSection.content += `${line}\n`;
+      const listItemMatch = line.match(/^(\d+)\.\s*(.*)/);
+      if (listItemMatch) {
+        if (!inList) {
+          inList = true;
+          listContent = '';
+        }
+        const content = listItemMatch[2].trim();
+        listContent += `<li class="mb-2">${content}</li>\n`;
+      } else if (inList && line.trim() === '') {
+        currentSection.content += `<ol class="list-decimal pl-6 space-y-2">${listContent}</ol>\n`;
+        inList = false;
+        listContent = '';
+        currentSection.content += line + '\n';
+      } else {
+        if (inList) {
+          currentSection.content += `<ol class="list-decimal pl-6 space-y-2">${listContent}</ol>\n`;
+          inList = false;
+          listContent = '';
+        }
+        currentSection.content += line + '\n';
+      }
     }
   });
 
   if (currentSection) {
-    sections.push(currentSection); // Add the last section
+    if (inList) {
+      currentSection.content += `<ol class="list-decimal pl-6 space-y-2">${listContent}</ol>\n`;
+    }
+    sections.push(currentSection);
   }
 
   return sections;
 }
-
 
 export default async function Page({ params }: { params: { slug: string } }) {
   const { slug } = params;
@@ -82,7 +114,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
   const sections = section ? splitIntoSections(section) : [];
 
   const processedSections = await Promise.all(
-    sections.map(async (section) => ({
+    sections.map(async (section: Section) => ({
       ...section,
       content: await markdownToHtml(section.content),
     }))
@@ -136,17 +168,17 @@ export default async function Page({ params }: { params: { slug: string } }) {
         </div>
       </div>
       <div className="bg-white rounded-lg shadow p-8">
-        {processedSections.map((section, index) => (
-          <div key={index} className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">{section.title}</h2>
-            <div
-              className="prose max-w-none"
-              dangerouslySetInnerHTML={{
-                __html: section.content,
-              }}
-            />
-          </div>
-        ))}
+      {processedSections.map((section, index) => (
+  <div key={index} className="mb-8">
+    <h2 className="text-2xl font-bold mb-4">{section.title}</h2>
+    <div
+      className="prose max-w-none"
+      dangerouslySetInnerHTML={{
+        __html: section.content,
+      }}
+    />
+  </div>
+))}
       </div>
       <div className="mt-8">
         <div id='comments'>
