@@ -30,13 +30,14 @@ interface Section {
 function splitIntoSections(markdown: string): Section[] {
   const lines = markdown.split('\n');
   const sections: Section[] = [];
-  let currentSection: Section | null = null;
+  let currentSection: Section = { title: '', content: '' }; // Initialize as an empty section
   let inList = false;
   let listContent = '';
 
   lines.forEach((line: string) => {
     if (line.startsWith('# ')) {
-      if (currentSection) {
+      if (currentSection.title) {
+        // Close any open list before pushing the current section
         if (inList) {
           currentSection.content += `<ol class="list-decimal pl-6 space-y-2">${listContent}</ol>\n`;
           inList = false;
@@ -54,13 +55,9 @@ function splitIntoSections(markdown: string): Section[] {
         }
         const content = listItemMatch[2].trim();
         listContent += `<li class="mb-2">${content}</li>\n`;
-      } else if (inList && line.trim() === '') {
-        currentSection.content += `<ol class="list-decimal pl-6 space-y-2">${listContent}</ol>\n`;
-        inList = false;
-        listContent = '';
-        currentSection.content += line + '\n';
       } else {
-        if (inList) {
+        // If we encounter an empty line and are in a list, close it
+        if (inList && line.trim() === '') {
           currentSection.content += `<ol class="list-decimal pl-6 space-y-2">${listContent}</ol>\n`;
           inList = false;
           listContent = '';
@@ -70,7 +67,8 @@ function splitIntoSections(markdown: string): Section[] {
     }
   });
 
-  if (currentSection) {
+  // Push the last section if it exists
+  if (currentSection.title) {
     if (inList) {
       currentSection.content += `<ol class="list-decimal pl-6 space-y-2">${listContent}</ol>\n`;
     }
@@ -79,6 +77,8 @@ function splitIntoSections(markdown: string): Section[] {
 
   return sections;
 }
+
+
 
 export default async function Page({ params }: { params: { slug: string } }) {
   const { slug } = params;
