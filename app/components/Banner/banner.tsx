@@ -41,11 +41,6 @@ export default async function Banner() {
    data?.[0]?.avatar?.formats?.small?.url;
    const lastUrl = imageUrl ? `${baseUrl}${imageUrl}` : '';
 
-
-   console.log("Full data:", JSON.stringify(data, null, 2));
-
-   console.log("DATA:", JSON.stringify(data))
-
  return (
     <div className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
      <div className="max-w-7xl mx-auto">

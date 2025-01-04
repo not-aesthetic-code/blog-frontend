@@ -1,15 +1,14 @@
 export type NewBlogComment = {
-  id?: string; // Make id optional
+  id?: string;
   name: string;
   email: string;
   body: string;
   post: string;
   parentId?: string;
-  };
-  
-  // Keep the original BlogComment type if needed
-  export type BlogComment = NewBlogComment & {
-    id: string;
-    createdAt: string;
-    replies?: BlogComment[];
-  };
+};
+
+export type BlogComment = NewBlogComment & {
+  id: string;
+  createdAt: string;
+  replies?: BlogComment[];
+};

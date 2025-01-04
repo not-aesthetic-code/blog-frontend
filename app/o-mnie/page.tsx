@@ -1,5 +1,5 @@
 import { StrapiImage } from "app/components/StrapiImage";
-
+import ClientSideWrapper from '@/components/ClientSideWrapper';
 
 import  { components } from "@strapi-types";
 type Author = components["schemas"]["Author"] & {
@@ -21,7 +21,12 @@ async function getData(): Promise<Author[]> {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
+        next: { revalidate: 60 } // Cache for 60 seconds
     });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const jsonData = await response.json();
     return jsonData.data;
@@ -98,37 +103,37 @@ export default async function AboutMe() {
     const data: Author[] = await getData();
     const largeImageUrl = data[0]?.bio_avatar?.url ?? '';
 
-    console.log("DATA AUTHOR", data)
-
     return (
-        <div className="max-w-6xl mx-auto px-4 py-16">
-            <h1 className="text-blue-500 text-4xl font-bold text-center mb-16">O MNIE</h1>
+        <ClientSideWrapper>
+            <div className="max-w-6xl mx-auto px-4 py-16">
+                <h1 className="text-blue-500 text-4xl font-bold text-center mb-16">O MNIE</h1>
 
-            {data.map((author) => (
-                <div key={author.id} className="flex flex-col items-center">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 items-start mb-16">
-                        <div className="space-y-6">
-                            <h2 className="text-3xl font-bold">{author.short_bio}</h2>
-                            <div className="prose prose-lg">
-                                <RichText content={author.big_bio} type="structured" />
+                {data.map((author) => (
+                    <div key={author.id} className="flex flex-col items-center">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 items-start mb-16">
+                            <div className="space-y-6">
+                                <h2 className="text-3xl font-bold">{author.short_bio}</h2>
+                                <div className="prose prose-lg">
+                                    <RichText content={author.big_bio} type="structured" />
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="flex justify-center md:h-[calc(100vh-12rem)] overflow-y-auto">
-                            <div className="relative w-3/4">
-                                <StrapiImage
-                                    alt={"Profile picture"}
-                                    className="rounded-lg object-contain"
-                                    src={largeImageUrl}
-                                    width={400}
-                                    height={600}
-                                    priority
-                                />
+                            <div className="flex justify-center md:h-[calc(100vh-12rem)] overflow-y-auto">
+                                <div className="relative w-3/4">
+                                    <StrapiImage
+                                        alt={"Profile picture"}
+                                        className="rounded-lg object-contain"
+                                        src={largeImageUrl}
+                                        width={400}
+                                        height={600}
+                                        priority
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            ))}
-        </div>
+                ))}
+            </div>
+        </ClientSideWrapper>
     );
 }
