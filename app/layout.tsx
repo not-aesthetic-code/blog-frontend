@@ -5,7 +5,8 @@ import Header from './components/Header/header';
 import Footer from './components/Footer/footer';
 import React from 'react';
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
- 
+import CookieConsent from "react-cookie-consent";
+
 import { QueryProvider } from './lib/query-provider';
 
 
@@ -34,6 +35,16 @@ export default function RootLayout({
    </body>
    <GoogleAnalytics gaId={process.env.GOOGLE_ANALYTICS_TOKEN || ''} />
    <GoogleTagManager gtmId={process.env.GOOGLE_ANALYTICS_TOKEN || ''} />
+   <CookieConsent
+        location="bottom"
+        buttonText="Accept"
+        cookieName="cookieConsent"
+        style={{ background: "#2B373B" }}
+        buttonStyle={{ color: "#4e503b", fontSize: "13px" }}
+        expires={150}
+      >
+        This website uses cookies to enhance the user experience.
+      </CookieConsent>
   </html>
  );
 }
