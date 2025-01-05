@@ -4,15 +4,12 @@ import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkHtml from 'remark-html';
 import { format } from 'date-fns'
-import { Button } from '@/components/ui/button';
 import { Post } from '../../types/posts'
 import { Comments } from 'app/components/Comments';
 import { getPosts } from 'app/server/actions/posts';
-import { HydrationBoundary } from '@tanstack/react-query';
-import Link from 'next/link';
+
 import { getCommentCount } from 'app/server/actions/comments';
 import { ScrollLink } from 'app/components/ScrollLink';
-import { StrapiImage } from 'app/components/StrapiImage';
 
 async function markdownToHtml(markdown: string) {
   const result = await unified()
@@ -78,10 +75,13 @@ function splitIntoSections(markdown: string): Section[] {
   return sections;
 }
 
+interface Props {
+  params: Promise<{ slug: string }>;
+}
 
 
-export default async function Page({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default async function Page({ params }: Props) {
+  const { slug } = await params;
 
   if (!slug) {
     return <div>Slug not provided</div>;
