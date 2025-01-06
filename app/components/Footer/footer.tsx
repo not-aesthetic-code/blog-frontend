@@ -9,23 +9,23 @@ interface SocialIconProps {
 
 const socialIcons: SocialIconProps[] = [
  {
-  href: '#',
+  href: 'https://www.linkedin.com/in/lukaszwasyleczko',
   src: '/icons/linkedin.svg',
   alt: 'linkedin',
   hoverColor: 'hover:bg-cyan-700',
  },
+ {
+  href: 'https://x.com/lwasyleczko',
+  src: '/icons/x.svg',
+  alt: 'x',
+  hoverColor: 'hover:bg-gray-800',
+ },
 //  {
 //   href: '#',
-//   src: '/icons/twitter.svg',
-//   alt: 'twitter',
-//   hoverColor: 'hover:bg-cyan-500',
+//   src: '/icons/instagram.svg',
+//   alt: 'instagram',
+//   hoverColor: 'hover:bg-red-700',
 //  },
- {
-  href: '#',
-  src: '/icons/instagram.svg',
-  alt: 'instagram',
-  hoverColor: 'hover:bg-red-700',
- },
 //  {
 //   href: '#',
 //   src: '/icons/email.svg',
@@ -37,7 +37,7 @@ const socialIcons: SocialIconProps[] = [
 const SocialIcon = ({ href, src, alt, hoverColor }: SocialIconProps) => (
  <a href={href} className="mr-4">
   <div
-   className={`bg-gray-800 ${hoverColor} rounded-full w-10 h-10 flex items-center justify-center`}
+   className={`bg-gray-600 ${hoverColor} rounded-full w-10 h-10 flex items-center justify-center`}
   >
    <Image src={src} alt={alt} width={18} height={18} />
   </div>
