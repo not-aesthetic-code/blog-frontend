@@ -5,7 +5,7 @@ import Header from './components/Header/header';
 import Footer from './components/Footer/footer';
 import React from 'react';
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
-
+import Script from 'next/script'
 import { QueryProvider } from './lib/query-provider';
 
 
@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
  return (
   <html lang="en" className="scroll-smooth" >
-    <script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/6a0c83b0ac5b93f54e363b75/script.js"></script>
+    <Script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/6a0c83b0ac5b93f54e363b75/script.js"/>
 
    <body className={inter.className}>
     <QueryProvider>
