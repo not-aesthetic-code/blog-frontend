@@ -4,6 +4,7 @@ import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkHtml from 'remark-html';
 import { format } from 'date-fns'
+import { pl } from 'date-fns/locale';
 import { Post } from '../../types/posts'
 import { Comments } from 'app/components/Comments';
 import { getPosts } from 'app/server/actions/posts';
@@ -11,63 +12,94 @@ import { getPosts } from 'app/server/actions/posts';
 import { getCommentCount } from 'app/server/actions/comments';
 import { ScrollLink } from 'app/components/ScrollLink';
 
-async function markdownToHtml(markdown: string) {
-  const result = await unified()
-    .use(remarkParse)
-    .use(remarkHtml)
-    .process(markdown);
-  return result.toString();
-}
-
 interface Section {
   title: string;
   content: string;
 }
 
 function splitIntoSections(markdown: string): Section[] {
+  if (!markdown) return [];
+  
   const lines = markdown.split('\n');
   const sections: Section[] = [];
-  let currentSection: Section = { title: '', content: '' }; // Initialize as an empty section
+  let currentSection: Section | null = null;
   let inList = false;
   let listContent = '';
+  let listType = '';
+
+  // Create initial section if content appears before any header
+  currentSection = {
+    title: '',
+    content: ''
+  };
 
   lines.forEach((line: string) => {
-    if (line.startsWith('# ')) {
-      if (currentSection.title) {
-        // Close any open list before pushing the current section
-        if (inList) {
-          currentSection.content += `<ol class="list-decimal pl-6 space-y-2">${listContent}</ol>\n`;
-          inList = false;
-          listContent = '';
-        }
-        sections.push(currentSection);
+    // Handle main headers (## only)
+    if (line.startsWith('## ')) {
+      if (currentSection) sections.push({ ...currentSection });
+      currentSection = {
+        title: line.slice(3).trim(),
+        content: ''
+      };
+    }
+    // All other content goes into current section
+    else if (currentSection) {
+      // Handle other header levels
+      if (line.startsWith('# ')) {
+        currentSection.content += `<h1 class="text-4xl font-bold my-8">${line.slice(2).trim()}</h1>\n`;
       }
-      currentSection = { title: line.slice(2).trim(), content: '' };
-    } else if (currentSection) {
-      const listItemMatch = line.match(/^(\d+)\.\s*(.*)/);
-      if (listItemMatch) {
-        if (!inList) {
+      else if (line.startsWith('### ')) {
+        currentSection.content += `<h3 class="text-2xl font-semibold my-6">${line.slice(4).trim()}</h3>\n`;
+      }
+      else if (line.startsWith('#### ')) {
+        currentSection.content += `<h4 class="text-xl font-semibold my-5">${line.slice(5).trim()}</h4>\n`;
+      }
+      // Handle images
+      else if (line.match(/!\[.*?\]\(.*?\)/)) {
+        const [, alt, src] = line.match(/!\[(.*?)\]\((.*?)\)/) || [];
+        currentSection.content += `<img src="${src}" alt="${alt}" class="my-12 rounded-lg w-full" />\n`;
+      }
+      // Handle numbered lists
+      else if (line.match(/^\d+[\.)]\s/)) {
+        if (!inList || listType !== 'ordered') {
+          if (inList) currentSection.content += listType === 'unordered' ? '</ul>\n' : '</ol>\n';
           inList = true;
-          listContent = '';
+          listType = 'ordered';
+          currentSection.content += '<ol class="list-decimal pl-6 space-y-2 my-4">\n';
         }
-        const content = listItemMatch[2].trim();
-        listContent += `<li class="mb-2">${content}</li>\n`;
-      } else {
-        // If we encounter an empty line and are in a list, close it
-        if (inList && line.trim() === '') {
-          currentSection.content += `<ol class="list-decimal pl-6 space-y-2">${listContent}</ol>\n`;
+        const content = line.replace(/^\d+[\.)]\s/, '').trim();
+        currentSection.content += `<li class="mb-2">${content}</li>\n`;
+      }
+      // Handle bullet lists
+      else if (line.startsWith('- ')) {
+        if (!inList || listType !== 'unordered') {
+          if (inList) currentSection.content += listType === 'ordered' ? '</ol>\n' : '</ul>\n';
+          inList = true;
+          listType = 'unordered';
+          currentSection.content += '<ul class="list-disc pl-6 space-y-2 my-4">\n';
+        }
+        const content = line.slice(2).trim();
+        currentSection.content += `<li class="mb-2 ">${content}</li>\n`;
+      }
+      // Handle empty lines
+      else if (line.trim() === '') {
+        if (inList) {
+          currentSection.content += listType === 'ordered' ? '</ol>\n' : '</ul>\n';
           inList = false;
-          listContent = '';
         }
-        currentSection.content += line + '\n';
+        currentSection.content += '\n';
+      }
+      // Handle regular paragraphs
+      else if (line.trim() !== '') {
+        currentSection.content += `<p class="mb-4">${line}</p>\n`;
       }
     }
   });
 
-  // Push the last section if it exists
-  if (currentSection.title) {
+  // Add the last section
+  if (currentSection && (currentSection.title || currentSection.content)) {
     if (inList) {
-      currentSection.content += `<ol class="list-decimal pl-6 space-y-2">${listContent}</ol>\n`;
+      currentSection.content += listType === 'ordered' ? '</ol>\n' : '</ul>\n';
     }
     sections.push(currentSection);
   }
@@ -75,10 +107,36 @@ function splitIntoSections(markdown: string): Section[] {
   return sections;
 }
 
-interface Props {
-  params: Promise<{ slug: string }>;
+// Update markdownToHtml function
+async function markdownToHtml(markdown: string) {
+  if (!markdown) return '';
+
+  // Handle inline formatting first
+  markdown = markdown
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold ">$1</strong>')
+    .replace(/_(.*?)_/g, '<em class="italic ">$1</em>')
+    .replace(/<u>_(.*?)_<\/u>/g, '<u class="underline ">$1</u>');
+
+  // Return if already contains HTML
+  if (markdown.includes('<h2 class="') || 
+      markdown.includes('<p class="') || 
+      markdown.includes('<ul class="') || 
+      markdown.includes('<ol class="')) {
+    return markdown;
+  }
+
+  const result = await unified()
+    .use(remarkParse)
+    .use(remarkHtml, { sanitize: false })
+    .process(markdown);
+
+  return result.toString();
 }
 
+
+interface Props {
+  params: { slug: string };
+}
 
 export default async function Page({ params }: Props) {
   const { slug } = await params;
@@ -88,6 +146,7 @@ export default async function Page({ params }: Props) {
   }
 
   let post: Post | null;
+  
   try {
     post = await getPosts(slug);
     if (!post) {
@@ -111,7 +170,9 @@ export default async function Page({ params }: Props) {
     ? format(new Date(post.createdAt), 'MMMM d, yyyy')
     : 'Date unknown';
 
-  const sections = section ? splitIntoSections(section) : [];
+    console.log("Input markdown:", section);
+    const sections = section ? splitIntoSections(section) : [];
+    console.log("Processed sections:", sections);
 
   const processedSections = await Promise.all(
     sections.map(async (section: Section) => ({
@@ -153,7 +214,7 @@ export default async function Page({ params }: Props) {
             {post.categories.map((category) => (
               <span
                 key={category.id}
-                className="bg-gray-200 text-gray-800 text-sm font-medium mr-2 mb-2 px-4 py-2 rounded-full"
+                className="bg-gray-200  text-sm font-medium mr-2 mb-2 px-4 py-2 rounded-full"
               >
                 {category.title}
               </span>
@@ -167,19 +228,27 @@ export default async function Page({ params }: Props) {
           </ScrollLink>
         </div>
       </div>
-      <div className="bg-white rounded-lg shadow p-8">
+
+      <article className="bg-white p-8">
       {processedSections.map((section, index) => (
-  <div key={index} className="mb-8">
-    <h2 className="text-2xl font-bold mb-4">{section.title}</h2>
-    <div
-      className="prose max-w-none"
-      dangerouslySetInnerHTML={{
-        __html: section.content,
-      }}
-    />
-  </div>
-))}
-      </div>
+        <div key={index} className="mb-16 last:mb-0">
+          <h2 className="text-3xl font-bold mb-8 ">{section.title}</h2>
+          <div
+            className="prose prose-lg max-w-none 
+              prose-headings: 
+              prose-p: 
+              prose-li:
+              prose-strong:
+              prose-img:my-12
+              prose-img:rounded-lg"
+            dangerouslySetInnerHTML={{
+              __html: section.content,
+            }}
+          />
+        </div>
+      ))}
+    </article>
+
       <div className="mt-8">
         <div id='comments'>
           <Comments postId={post.id} slug={slug} />

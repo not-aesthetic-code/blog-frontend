@@ -88,6 +88,39 @@ const config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            h3: {
+              fontSize: '1.5rem',
+              fontWeight: '600',
+              marginTop: '2rem',
+              marginBottom: '1rem',
+            },
+            h4: {
+              fontSize: '1.25rem',
+              fontWeight: '600',
+              marginTop: '1.5rem',
+              marginBottom: '0.75rem',
+            },
+            'ol > li': {
+              marginTop: '0.5rem',
+              marginBottom: '0.5rem',
+            },
+            'ul > li': {
+              marginTop: '0.5rem',
+              marginBottom: '0.5rem',
+            },
+            'ul': {
+              marginTop: '1rem',
+              marginBottom: '1rem',
+            },
+            'li': {
+              marginBottom: '0.5rem',
+            }
+          },
+        },
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
