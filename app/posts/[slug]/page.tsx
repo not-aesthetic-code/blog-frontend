@@ -134,12 +134,12 @@ async function markdownToHtml(markdown: string) {
 }
 
 
-interface Props {
-  params: { slug: string };
-}
+type Props = {
+  params: Promise<{ slug: string }>
+};
 
 export default async function Page({ params }: Props) {
-  const { slug } =  params;
+  const { slug } = await params;
 
   if (!slug) {
     return <div>Slug not provided</div>;
