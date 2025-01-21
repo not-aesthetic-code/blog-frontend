@@ -139,7 +139,7 @@ interface Props {
 }
 
 export default async function Page({ params }: Props) {
-  const { slug } = await params;
+  const { slug } =  params;
 
   if (!slug) {
     return <div>Slug not provided</div>;
@@ -170,9 +170,7 @@ export default async function Page({ params }: Props) {
     ? format(new Date(post.createdAt), 'MMMM d, yyyy')
     : 'Date unknown';
 
-    console.log("Input markdown:", section);
     const sections = section ? splitIntoSections(section) : [];
-    console.log("Processed sections:", sections);
 
   const processedSections = await Promise.all(
     sections.map(async (section: Section) => ({
