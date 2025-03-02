@@ -14,21 +14,14 @@ export default function ArticleCard({ article }: ArticleCardProps) {
   .toISOString()
   .split('T')[0];
   
-
- const largeImageUrl = article.media?.[0]?.formats?.large?.url ?? '';
-
  const firstImage = article.media && article.media.length > 0 ? article.media[0] : null;
  const imageUrl = firstImage?.formats?.large?.url ?? firstImage?.url ?? '';
- const baseUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || '';
- const lastUrl = `${baseUrl}${imageUrl}`
-
- console.log("WHOLE URL", lastUrl)
 
  return (
     <div className="bg-white rounded-lg overflow-hidden flex flex-col w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto shadow transition-shadow duration-300 hover:shadow-lg cursor-pointer">
     <div className="relative w-full pt-[56.25%] sm:pt-[75%] md:pt-[66.67%] lg:pt-[60%]">
         <Image
-              src={lastUrl}
+              src={imageUrl}
               alt={article.title || 'Art title'}
               fill
               priority

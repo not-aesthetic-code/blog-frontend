@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost'],  // Add this for simpler local development
+    domains: [
+      'localhost',
+      'res.cloudinary.com',
+      'blog-backend-production-a0ab.up.railway.app'
+    ],
     remotePatterns: [
       {
         protocol: 'http',
@@ -12,8 +16,13 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'blog-backend-production-a0ab.up.railway.app',
-        pathname: '/uploads/**',
-      }
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
     ],
   },
   env: {

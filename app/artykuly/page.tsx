@@ -21,7 +21,6 @@ async function getData(): Promise<ArticleType[]> {
       }
   
       const jsonData = await response.json();
-      console.log('API Response:', jsonData);
   
       if (!jsonData.data || !Array.isArray(jsonData.data)) {
         console.error('Unexpected API response structure:', jsonData);

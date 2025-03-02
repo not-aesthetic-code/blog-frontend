@@ -4,7 +4,6 @@ import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkHtml from 'remark-html';
 import { format } from 'date-fns'
-import { pl } from 'date-fns/locale';
 import { Post } from '../../types/posts'
 import { Comments } from 'app/components/Comments';
 import { getPosts } from 'app/server/actions/posts';
@@ -57,7 +56,8 @@ function splitIntoSections(markdown: string): Section[] {
       // Handle images
       else if (line.match(/!\[.*?\]\(.*?\)/)) {
         const [, alt, src] = line.match(/!\[(.*?)\]\((.*?)\)/) || [];
-        currentSection.content += `<img src="${src}" alt="${alt}" class="my-12 rounded-lg w-full" />\n`;
+        // Keep the markdown format for now, let markdownToHtml handle it
+        currentSection.content += line + '\n';
       }
       // Handle numbered lists
       else if (line.match(/^\d+[\.)]\s/)) {
@@ -107,32 +107,47 @@ function splitIntoSections(markdown: string): Section[] {
   return sections;
 }
 
-// Update markdownToHtml function
 async function markdownToHtml(markdown: string) {
   if (!markdown) return '';
 
-  // Handle inline formatting first
-  markdown = markdown
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold ">$1</strong>')
-    .replace(/_(.*?)_/g, '<em class="italic ">$1</em>')
-    .replace(/<u>_(.*?)_<\/u>/g, '<u class="underline ">$1</u>');
+  // Pre-process image markdown before unified processing
+  let processedMarkdown = markdown.replace(
+    /!\[(.*?)\]\((.*?)\)/g,
+    (match, alt, src) => {
+      try {
+        // Clean up the URL - remove any line breaks and extra spaces
+        const cleanSrc = src.trim().replace(/\n/g, '');
+        const decodedSrc = decodeURIComponent(cleanSrc);
+        const baseUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || '';
+        
+        // Handle URLs that might be split across lines or have spaces
+        const fullUrl = decodedSrc.startsWith('http') 
+          ? decodedSrc 
+          : `${baseUrl}${decodedSrc.replace(/\s+/g, '')}`;
+
+        return `<img src="${fullUrl}" alt="${alt}" class="my-12 rounded-lg w-full" />`;
+      } catch (error) {
+        console.error('Error processing image URL:', error);
+        return match;
+      }
+    }
+  );
 
   // Return if already contains HTML
-  if (markdown.includes('<h2 class="') || 
-      markdown.includes('<p class="') || 
-      markdown.includes('<ul class="') || 
-      markdown.includes('<ol class="')) {
-    return markdown;
+  if (processedMarkdown.includes('<h2 class="') || 
+      processedMarkdown.includes('<p class="') || 
+      processedMarkdown.includes('<ul class="') || 
+      processedMarkdown.includes('<ol class="')) {
+    return processedMarkdown;
   }
 
   const result = await unified()
     .use(remarkParse)
     .use(remarkHtml, { sanitize: false })
-    .process(markdown);
+    .process(processedMarkdown);
 
   return result.toString();
 }
-
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -183,6 +198,8 @@ export default async function Page({ params }: Props) {
   const imageUrl = firstImage?.formats?.large?.url ?? firstImage?.url ?? '';
   const baseUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || '';
   const lastUrl = `${baseUrl}${imageUrl}`
+
+  console.log("image url", firstImage)
 
   return (
     <div className="max-w-4xl mx-auto p-4">

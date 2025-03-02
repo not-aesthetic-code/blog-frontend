@@ -36,10 +36,10 @@ async function getData() {
 
 export default async function Banner() {
    const data = await getData();
-   const baseUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL
-   const imageUrl = data?.[0]?.avatar?.url || 
-   data?.[0]?.avatar?.formats?.small?.url;
-   const lastUrl = imageUrl ? `${baseUrl}${imageUrl}` : '';
+   const imageUrl = data?.[0]?.avatar?.url || data?.[0]?.avatar?.formats?.small?.url;
+
+   // For debugging, add this:
+   console.log("Image URL:", imageUrl);
 
  return (
     <div className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
@@ -48,9 +48,9 @@ export default async function Banner() {
        {/* Image Container - Now first in the flex column for mobile */}
        <div className="lg:w-1/2 flex justify-center lg:justify-end order-first lg:order-last mb-8 lg:mb-0">
   <div className="relative w-64 h-64 lg:w-80 lg:h-80">
-         {lastUrl && (
+         {imageUrl && (
             <Image
-            src={lastUrl}
+            src={imageUrl}
             alt="Łukasz"
             fill
             className="rounded-lg object-cover"
