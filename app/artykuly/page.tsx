@@ -36,7 +36,6 @@ async function getData(): Promise<ArticleType[]> {
 
   const Page = async () => {
     const data: ArticleType[] = await getData();
-    const baseUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL;
   
     return (
       <div className="container mx-auto py-8">
@@ -50,7 +49,7 @@ async function getData(): Promise<ArticleType[]> {
               <div className="md:w-1/2 relative h-[300px]">
                 {article.media?.[0]?.url && (
                   <Image
-                    src={`${baseUrl}${article.media[0].url}`}
+                    src={`${article.media[0].url}`}
                     alt={article.media[0].name || 'Article image'}
                     fill
                     className="object-cover"

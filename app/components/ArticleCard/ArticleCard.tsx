@@ -1,8 +1,6 @@
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { StrapiImage } from '../StrapiImage';
-import { ArticleType } from '../Article/Article.type';
 import { Post } from '../../types/posts'
 
 interface ArticleCardProps {
@@ -15,14 +13,14 @@ export default function ArticleCard({ article }: ArticleCardProps) {
   .split('T')[0];
   
  const firstImage = article.media && article.media.length > 0 ? article.media[0] : null;
- const imageUrl = firstImage?.formats?.large?.url ?? firstImage?.url ?? '';
+ const imageUrl = firstImage?.formats?.large?.url ?? firstImage?.url ?? null;
 
  return (
     <div className="bg-white rounded-lg overflow-hidden flex flex-col w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto shadow transition-shadow duration-300 hover:shadow-lg cursor-pointer">
     <div className="relative w-full pt-[56.25%] sm:pt-[75%] md:pt-[66.67%] lg:pt-[60%]">
         <Image
-              src={imageUrl}
-              alt={article.title || 'Art title'}
+              src={imageUrl || '/placeholder-image.jpg'}
+              alt={article.title || 'Article title'}
               fill
               priority
               className="object-cover absolute top-0 left-0 w-full h-full"

@@ -118,12 +118,11 @@ async function markdownToHtml(markdown: string) {
         // Clean up the URL - remove any line breaks and extra spaces
         const cleanSrc = src.trim().replace(/\n/g, '');
         const decodedSrc = decodeURIComponent(cleanSrc);
-        const baseUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || '';
         
         // Handle URLs that might be split across lines or have spaces
         const fullUrl = decodedSrc.startsWith('http') 
           ? decodedSrc 
-          : `${baseUrl}${decodedSrc.replace(/\s+/g, '')}`;
+          : `${decodedSrc.replace(/\s+/g, '')}`;
 
         return `<img src="${fullUrl}" alt="${alt}" class="my-12 rounded-lg w-full" />`;
       } catch (error) {
@@ -196,10 +195,8 @@ export default async function Page({ params }: Props) {
 
   const firstImage = post.media && post.media.length > 0 ? post.media[0] : null;
   const imageUrl = firstImage?.formats?.large?.url ?? firstImage?.url ?? '';
-  const baseUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || '';
-  const lastUrl = `${baseUrl}${imageUrl}`
+  const lastUrl = `${imageUrl}`
 
-  console.log("image url", firstImage)
 
   return (
     <div className="max-w-4xl mx-auto p-4">

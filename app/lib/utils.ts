@@ -8,8 +8,6 @@ export function getStrapiMedia(url: string): string {
   // If the URL is already absolute, return it
   if (url.startsWith('http')) return url;
   
-  const baseUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL;
-  // Remove any leading slash
   const path = url.startsWith('/') ? url.slice(1) : url;
-  return `${baseUrl}/${path}`;
+  return `${path}`;
 }
